@@ -23,7 +23,7 @@ void write_ecall(Instruction); //check dentro de decode
 //falta implementar las de arriba
 void decode_instruction(Instruction instruction) {
   /* YOUR CODE HERE: COMPLETE THE SWITCH STATEMENTS */
-  switch(0)(instruction.opcode) { // What do we switch on?
+  switch(instruction.opcode) { // What do we switch on?
     /* YOUR CODE HERE */
         case 0x33:
             write_rtype(instruction);
@@ -49,10 +49,10 @@ void decode_instruction(Instruction instruction) {
         case 0x6f:
             write_jal(instruction);
             break;
-        case -------:
+        case 0x43:
             write_jalr(instruction);
             break;
-        case ------:
+        case 0x11:
             write_auipc(instruction);
             break;
     default: // undefined opcode
@@ -62,7 +62,7 @@ void decode_instruction(Instruction instruction) {
 }
 //todo corregido y sin problemas
 void write_rtype(Instruction instruction) {
-  switch(0)(instruction.rtype.funct3){ // What do we switch on?
+  switch(instruction.rtype.funct3){ // What do we switch on?
     /* YOUR CODE HERE */
     case 0x0:
            switch (instruction.rtype.funct7) {
@@ -143,8 +143,9 @@ void write_rtype(Instruction instruction) {
       break;
   }
 }
+
 void write_itype_except_load(Instruction instruction) {
-  switch(0)(instruction.itype.funct3) { // What do we switch on?
+  switch(instruction.itype.funct3) { // What do we switch on?
     /* YOUR CODE HERE */
     case 0x0:
            print_itype_except_load("addi", instruction, instruction.itype.imm);
@@ -158,7 +159,8 @@ void write_itype_except_load(Instruction instruction) {
        case 0x4:
            print_itype_except_load("xori", instruction, instruction.itype.imm);
            break;
-       case 0x5:{
+       case 0x5:
+            switch(instruction.itype.imm>>10){
                case 0x0:
                    print_itype_except_load("srli", instruction, instruction.itype.imm & 0x1F);
                    break;
@@ -183,7 +185,7 @@ void write_itype_except_load(Instruction instruction) {
 }
 //todo corregido y compledo
 void write_load(Instruction instruction) {
-  switch(0) (instruction.itype.funct3){ // What do we switch on?
+  switch(instruction.itype.funct3){ // What do we switch on?
     /* YOUR CODE HERE */
     case 0x0:
            print_load("lb", instruction);
@@ -201,7 +203,7 @@ void write_load(Instruction instruction) {
 }
 //todo corregido y sin problemas
 void write_store(Instruction instruction) {
-  switch(0) (instruction.stype.funct3){ // What do we switch on?
+  switch(instruction.stype.funct3){ // What do we switch on?
     /* YOUR CODE HERE */
     case 0x0:
            print_store("sb", instruction);
@@ -219,7 +221,7 @@ void write_store(Instruction instruction) {
 }
 //todo completado y corregido
 void write_branch(Instruction instruction) {
-  switch(0) (instruction.sbtype.funct3) { // What do we switch on?
+  switch(instruction.sbtype.funct3) { // What do we switch on?
     /* YOUR CODE HERE */
       case 0x0:
            print_branch("beq", instruction);
@@ -232,16 +234,13 @@ void write_branch(Instruction instruction) {
       break;
   }
 }
-void write_auipc(Instruccion instruccion{
-//pendiente
-}
 
 /* For the writes, probably a good idea to take a look at utils.h */
 
 void write_auipc(Instruction instruction) {
   /* YOUR CODE HERE */
+  printf(AUIPC_FORMAT, instruction.utype.rd , instruction.utype.imm);
 }
-
 
 void write_lui(Instruction instruction) {
   /* YOUR CODE HERE */
@@ -249,10 +248,11 @@ void write_lui(Instruction instruction) {
    unsigned int imm = instruction.utype.imm;
    printf("lui\tx%d, %d\n", rd, imm);
 }
+
 void write_jalr(Instruction instruction) {
   /* YOUR CODE HERE */
+  printf(JALR_FORMAT, instruction.itype.rd, instruction.itype.rs1, instruction.itype.imm);
 }
-
 
 void write_jal(Instruction instruction) {
   /* YOUR CODE HERE */
@@ -260,12 +260,10 @@ int offset = get_jump_offset(instruction);
 printf("jal\tx%d, %d\n", instruction.ujtype.rd, offset);
 }
 
-
 void write_ecall(Instruction instruction) {
   /* YOUR CODE HERE */
    printf("ecall\n");
 }
-
 
 void print_rtype(char *name, Instruction instruction) {
   /* YOUR CODE HERE */
@@ -274,26 +272,31 @@ void print_rtype(char *name, Instruction instruction) {
    unsigned int rs2 = instruction.rtype.rs2;
    printf("%s\tx%d, x%d, x%d\n", name, rd, rs1, rs2);
 }
+
 void print_itype_except_load(char *name, Instruction instruction, int imm) {
   /* YOUR CODE HERE */
    unsigned int rd = instruction.itype.rd;
    unsigned int rs1 = instruction.itype.rs1;
-   printf//pendiente
+   printf(ITYPE_FORMAT, name, rd, rs1, bitSigner(imm, 12));
 }
+
 void print_load(char *name, Instruction instruction) {
   /* YOUR CODE HERE */
       unsigned int rs1 = instruction.itype.rs1;
       unsigned int rd = instruction.itype.rd;
       int imm = instruction.itype.imm;
-      printf("%s\tx%d, %d(x%d)\n", name, rd, sign_extend_number(imm, 12), rs1);
+      int aux = bitSigner(imm, 12);
+      printf("%s\tx%d, %d(x%d)\n", name, rd, aux , rs1);
 }
+
 void print_store(char *name, Instruction instruction) {
   /* YOUR CODE HERE */
     unsigned int rs1 = instruction.stype.rs1;
     unsigned int rs2 = instruction.stype.rs2;
     int imm = get_store_offset(instruction);
-    printf// pendiente
+    printf(MEM_FORMAT, name, rs2, imm, rs1);
 }
+
 void print_branch(char *name, Instruction instruction) {
   /* YOUR CODE HERE */
    unsigned int rs1 = instruction.sbtype.rs1;
