@@ -20,8 +20,48 @@ void execute_lui(Instruction, Processor *);
 
 void execute_instruction(Instruction instruction,Processor *processor,Byte *memory) {
   /* YOUR CODE HERE: COMPLETE THE SWITCH STATEMENTS */
-  switch(0) { // What do we switch on?
+  switch(instruction.opcode) { // What do we switch on?
     /* YOUR CODE HERE */
+    case 0x33:
+      execute_rtype(instruction, processor);
+      processor -> PC += 4;
+      break;
+    case 0x13:
+      execute_itype_except_load(instruction, processor);
+      processor -> PC += 4;
+      break;
+    case 0x73:
+      execute_ecall(processor, memory);
+      processor -> PC += 4;
+      break;
+    case 0x63:
+      execute_branch(instruction, processor);
+      processor -> PC += 4;
+      break;
+    case 0x6F:
+      execute_jal(instruction, processor);
+      processor -> PC += 4;
+      break;
+    case 0x23:
+      execute_store(instruction, processor, memory);
+      processor -> PC += 4;
+      break;
+    case 0x03:
+      execute_load(instruction, processor, memory);
+      processor -> PC += 4;
+      break;
+    case 0x37:
+      execute_lui(instruction, processor);
+      processor -> PC +=4;
+      break;
+    case 0x43:
+      execute_jalr(instruction, processor);
+      processor -> PC += 4;
+      break;
+    case 0x11:
+      execute_auipc(instruction, processor);
+      processor -> PC += 4;
+      break;
     default: // undefined opcode
       handle_invalid_instruction(instruction);
       exit(-1);
@@ -31,29 +71,156 @@ void execute_instruction(Instruction instruction,Processor *processor,Byte *memo
 
 
 void execute_rtype(Instruction instruction, Processor *processor) {
-  switch(0) { // What do we switch on?
+  switch(instruction.rtype.funct3){ // What do we switch on?
     /* YOUR CODE HERE */
+    case 0x0:
+           switch (instruction.rtype.funct7) {
+               case 0x0:
+                   processor->R[instruction.rtype.rd] = (int)processor->R[instruction.rtype.rs1] + (int)processor->R[instruction.rtype.rs2];
+                   break;
+               case 0x1:
+                   processor->R[instruction.rtype.rd] = (int)processor->R[instruction.rtype.rs1] * (int)processor->R[instruction.rtype.rs2];
+                   break;
+               case 0x20:
+                   processor->R[instruction.rtype.rd] = (int)processor->R[instruction.rtype.rs1] - (int)processor->R[instruction.rtype.rs2];
+                   break;
+               default:
+                   handle_invalid_instruction(instruction);
+               break;
+           }
+           break;
+       case 0x1:
+           switch (instruction.rtype.funct7) {
+               case 0x0:
+                  processor->R[instruction.rtype.rd] = (unsigned)processor->R[instruction.rtype.rs1] << (int)processor->R[instruction.rtype.rs2];
+                  break;
+               case 0x1:
+                  processor->R[instruction.rtype.rd] = (sDouble)processor->R[instruction.rtype.rs1] * (sDouble)(processor->R[instruction.rtype.rs2]) >> 32;
+                  break;
+               default:
+                  handle_invalid_instruction(instruction);
+                  break;
+           }
+           break;
+       case 0x2:
+           if((processor->R[instruction.rtype.rs1] < processor->R[instruction.rtype.rs2])){
+             processor->R[instruction.rtype.rd] = 1;
+           }else{
+             processor->R[instruction.rtype.rd] = 0;
+           }
+           break;
+       case 0x4:
+           switch (instruction.rtype.funct7) {
+               case 0x0:
+                  processor->R[instruction.rtype.rd] = (unsigned)processor->R[instruction.rtype.rs1] ^ (unsigned)processor->R[instruction.rtype.rs2];
+                  break;
+               case 0x1:
+                  processor->R[instruction.rtype.rd] = (int)processor->R[instruction.rtype.rs1] / (int)processor->R[instruction.rtype.rs2];
+                  break;
+               default:
+                  handle_invalid_instruction(instruction);
+                  break;
+           }
+           break;
+       case 0x5:
+           switch (instruction.rtype.funct7) {
+               case 0x0:
+                  processor->R[instruction.rtype.rd] = (unsigned)processor->R[instruction.rtype.rs1] >> (int)processor->R[instruction.rtype.rs2];
+                  break;
+               case 0x20:
+                  processor->R[instruction.rtype.rd] = (int)processor->R[instruction.rtype.rs1] >> (int)processor->R[instruction.rtype.rs2];
+                  break;
+               default:
+                  handle_invalid_instruction(instruction);
+                  break;
+           }
+           break;
+       case 0x6:
+           switch (instruction.rtype.funct7) {
+               case 0x0:
+                  processor->R[instruction.rtype.rd] = (unsigned)processor->R[instruction.rtype.rs1] | (unsigned)processor->R[instruction.rtype.rs2];
+                  break;
+               case 0x1:
+                  processor->R[instruction.rtype.rd] = (int)processor->R[instruction.rtype.rs1] % (int)processor->R[instruction.rtype.rs2];
+                  break;
+               default:
+                  handle_invalid_instruction(instruction);
+                  break;
+           }
+           break;
+       case 0x7:
+           processor->R[instruction.rtype.rd] = (unsigned)processor->R[instruction.rtype.rs1] & (unsigned)processor->R[instruction.rtype.rs2];
+           break;
     default:
       handle_invalid_instruction(instruction);
-      exit(-1);
       break;
   }
 }
 
 
 void execute_itype_except_load(Instruction instruction, Processor *processor) {
-  switch(0) { // What do we switch on?
+  switch(instruction.itype.funct3) { // What do we switch on?
     /* YOUR CODE HERE */
+    case 0x0:
+          processor->R[instruction.itype.rd] = (int)processor->R[instruction.itype.rs1] + (int)bitSigner(instruction.itype.imm, 12);
+          break;
+       case 0x1:
+          processor->R[instruction.itype.rd] = (unsigned)processor->R[instruction.itype.rs1] << (int)instruction.itype.imm;
+          break;
+       case 0x2:
+          if((int)processor->R[instruction.itype.rs1] < (int)bitSigner(instruction.itype.imm, 12)){
+            processor->R[instruction.itype.rd] = 1;
+          }else{
+            processor->R[instruction.itype.rd] = 0;
+          }
+          break;
+       case 0x4:
+          processor->R[instruction.itype.rd] = processor->R[instruction.itype.rs1] ^ (unsigned)bitSigner(instruction.itype.imm, 12);
+          break;
+       case 0x5:
+          switch(instruction.itype.imm>>5){
+              case 0x0:
+                  processor->R[instruction.itype.rd] = (unsigned)processor->R[instruction.itype.rs1] >> (int)processor->R[instruction.itype.imm];
+                  break;
+              case 0x20:
+                  processor->R[instruction.itype.rd] = (int)processor->R[instruction.itype.rs1] >> (int)instruction.itype.imm;
+                  break;
+              default:
+                  handle_invalid_instruction(instruction);
+                  break;
+          }
+           break;
+       case 0x6:
+          processor->R[instruction.itype.rd] = (unsigned)processor->R[instruction.itype.rs1] | (unsigned)bitSigner(instruction.itype.imm, 12);
+          break;
+       case 0x7:
+          processor->R[instruction.itype.rd] = (unsigned)processor->R[instruction.itype.rs1] & (unsigned)bitSigner(instruction.itype.imm, 12);
+          break;
     default:
-        handle_invalid_instruction(instruction);
-        break;
+      handle_invalid_instruction(instruction);
+      break;
   }
 }
 
 
 void execute_ecall(Processor *p, Byte *memory) {
-  switch(0) { // What do we switch on?
+  int aux;
+  switch(p->R[10]) { // What do we switch on?
     /* YOUR CODE HERE */
+    case 1:
+      printf("%d", p->R[11]);
+      break;
+    case 4:
+      for(aux=p->R[11]; aux<MEMORY_SPACE && load(memory, aux, LENGTH_BYTE, 1); aux++){
+        printf("%c", load(memory, aux, LENGTH_BYTE, 1));
+      }
+      break;
+    case 10:
+      printf("Exiting the simulator...\n");
+      break;
+    case 11:
+      printf("%c", p->R[11]);
+      break;
     default: // undefined ecall
       printf("Illegal ecall number %d\n", -1); // What stores the ecall arg?
       exit(-1);
@@ -65,6 +232,7 @@ void execute_ecall(Processor *p, Byte *memory) {
 void execute_branch(Instruction instruction, Processor *processor) {
   /* Remember that the immediate portion of branches
      is counting half-words, so make sure to account for that. */
+     
   switch(0) { // What do we switch on?
     /* YOUR CODE HERE */
     default:
