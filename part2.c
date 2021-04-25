@@ -332,16 +332,40 @@ int check(Address address, Alignment alignment) {
   return 0;
 }
 
-
 void store(Byte *memory, Address address, Alignment alignment, Word value, int check_align) {
   if ((check_align && !check(address,alignment)) || (address >= MEMORY_SPACE)) {
     handle_invalid_write(address);
-  }
+ }
+    if (alignment == LENGTH_BYTE) {
+      memory[address] = value & 0xFF;
+    }
+    else if (alignment == LENGTH_HALF_WORD) {
+      memory[address] = value & 0xFF;
+      memory[address + 1] = (value >> 8) & 0xFF;
+    }
+    else if (alignment == LENGTH_WORD) {
+      memory[address] = value & 0xFF;
+      memory[address + 1] = (value >> 8) & 0xFF;
+      memory[address + 2] = (value >> 16) & 0xFF;
+      memory[address + 3] = (value >> 24) & 0xFF;
+    
 }
-
-
 Word load(Byte *memory, Address address, Alignment alignment, int check_align) {
   if ((check_align && !check(address,alignment)) || (address >= MEMORY_SPACE)) {
     handle_invalid_read(address);
-  } return 0;
+    int data = 0;
+    if (alignment == LENGTH_BYTE) {
+      data = bitSSigner(memory[address], 8);
+    }
+    else if (alignment == LENGTH_HALF_WORD) {
+      data = memory[address + 1];
+      data = (data << 8) | memory[address];
+      data = bitSigner(data, 16);
+    }
+    else if (alignment == LENGTH_WORD) {
+      data = memory[address + 3 ];
+      data = (data << 8) | memory[address + 2];
+      data = (data << 8) | memory[address + 1];
+      data = (data << 8) | memory[address];
+  } return data;
 }
