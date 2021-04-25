@@ -216,7 +216,7 @@ void execute_ecall(Processor *p, Byte *memory) {
       }
       break;
     case 10:
-      printf("Exiting the simulator...\n");
+      printf("exiting the simulator...\n");
       break;
     case 11:
       printf("%c", p->R[11]);
@@ -233,8 +233,20 @@ void execute_branch(Instruction instruction, Processor *processor) {
   /* Remember that the immediate portion of branches
      is counting half-words, so make sure to account for that. */
      
-  switch(0) { // What do we switch on?
+  switch(instruction.sbtype.funct3) { // What do we switch on?
     /* YOUR CODE HERE */
+    case 0x0:
+      if ((int) processor->R[instruction.sbtype.rs1] == (int) processor->R[instruction.sbtype.rs2]){
+                processor->PC += get_branch_offset(instruction);
+      }else{
+                processor->PC += 4;
+      }break;
+    case 0x1:
+      if ((int) processor->R[instruction.sbtype.rs1] != (int) processor->R[instruction.sbtype.rs2]){
+                processor->PC += get_branch_offset(instruction);
+      }else{
+                processor->PC += 4;
+      }break;
     default:
       handle_invalid_instruction(instruction);
       exit(-1);
@@ -244,8 +256,17 @@ void execute_branch(Instruction instruction, Processor *processor) {
 
 
 void execute_load(Instruction instruction, Processor *processor, Byte *memory) {
-  switch(0) { // What do we switch on?
+  switch(instruction.itype.funct3) { // What do we switch on?
     /* YOUR CODE HERE */
+    case 0x0:
+      processor->R[instruction.itype.rd] = load(memory, processor->R[instruction.itype.rs1]+bitSigner(instruction.itype.imm, 12), LENGTH_BYTE, 0);
+      break;
+    case 0x1:
+      processor->R[instruction.itype.rd] = load(memory, processor->R[instruction.itype.rs1]+bitSigner(instruction.itype.imm, 12), LENGTH_HALF_WORD, 0);
+      break;
+    case 0x2:
+      processor->R[instruction.itype.rd] = load(memory, processor->R[instruction.itype.rs1]+bitSigner(instruction.itype.imm, 12), LENGTH_WORD, 0);
+      break;
     default:
       handle_invalid_instruction(instruction);
       break;
@@ -254,8 +275,17 @@ void execute_load(Instruction instruction, Processor *processor, Byte *memory) {
 
 
 void execute_store(Instruction instruction, Processor *processor, Byte *memory) {
-  switch(0) { // What do we switch on?
+  switch(instruction.stype.funct3) { // What do we switch on?
     /* YOUR CODE HERE */
+    case 0x0:
+      store(memory, processor->R[instruction.stype.rs1] + get_store_offset(instruction), LENGTH_BYTE, processor->R[instruction.stype.rs2], 0);
+      break;
+    case 0x1:
+      store(memory, processor->R[instruction.stype.rs1] + get_store_offset(instruction), LENGTH_HALF_WORD, processor->R[instruction.stype.rs2], 0);
+      break;
+    case 0x2:
+      store(memory, processor->R[instruction.stype.rs1] + get_store_offset(instruction), LENGTH_WORD, processor->R[instruction.stype.rs2], 0);
+      break;
     default:
       handle_invalid_instruction(instruction);
       exit(-1);
@@ -279,14 +309,13 @@ void execute_jal(Instruction instruction, Processor *processor) {
 
 void execute_auipc(Instruction instruction, Processor *processor) {
   /* YOUR CODE HERE */
+  processor->R[instruction.utype.rd] = processor->PC +4;
 }
 
 
 void execute_lui(Instruction instruction, Processor *processor) {
   /* no critiques mi variable :/*/
-  int panque
-  panque = bitSigner(instruction.utype.panque, 32) << 12;
-  processor->R[instruction.utype.rd] = panque;
+  processor->R[instruction.utype.rd] = instruction.utype.imm << 12;
 }
 
 
@@ -308,14 +337,11 @@ void store(Byte *memory, Address address, Alignment alignment, Word value, int c
   if ((check_align && !check(address,alignment)) || (address >= MEMORY_SPACE)) {
     handle_invalid_write(address);
   }
-  /* YOUR CODE HERE */
 }
 
 
 Word load(Byte *memory, Address address, Alignment alignment, int check_align) {
   if ((check_align && !check(address,alignment)) || (address >= MEMORY_SPACE)) {
     handle_invalid_read(address);
-  }
-  /* YOUR CODE HERE */
-  return 0;
+  } return 0;
 }
