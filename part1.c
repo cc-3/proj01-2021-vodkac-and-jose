@@ -49,10 +49,10 @@ void decode_instruction(Instruction instruction) {
         case 0x6f:
             write_jal(instruction);
             break;
-        case 0x43:
+        case 0x67:
             write_jalr(instruction);
             break;
-        case 0x11:
+        case 0x17:
             write_auipc(instruction);
             break;
     default: // undefined opcode
@@ -239,7 +239,7 @@ void write_branch(Instruction instruction) {
 
 void write_auipc(Instruction instruction) {
   /* YOUR CODE HERE */
-  printf(AUIPC_FORMAT, instruction.utype.rd , instruction.utype.imm);
+  printf(AUIPC_FORMAT, instruction.utype.rd, (unsigned)instruction.utype.imm);
 }
 
 void write_lui(Instruction instruction) {
@@ -251,7 +251,7 @@ void write_lui(Instruction instruction) {
 
 void write_jalr(Instruction instruction) {
   /* YOUR CODE HERE */
-  printf(JALR_FORMAT, instruction.itype.rd, instruction.itype.rs1, instruction.itype.imm);
+  printf(JALR_FORMAT, (unsigned int)instruction.itype.rd, (unsigned int)instruction.itype.rs1, (unsigned int)bitSigner(instruction.itype.imm, 12));
 }
 
 void write_jal(Instruction instruction) {
