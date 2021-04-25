@@ -265,14 +265,17 @@ void execute_store(Instruction instruction, Processor *processor, Byte *memory) 
 
 
 void execute_jalr(Instruction instruction, Processor *processor) {
-  /* YOUR CODE HERE */
+  /* YOUR CODE HERE */ 
 }
 
 
 void execute_jal(Instruction instruction, Processor *processor) {
   /* YOUR CODE HERE */
+  int voPC;
+  voPC = processor->PC + get_jump_offset(instruction);
+  processor->R[instruction.ujtype.rd] = processor->PC + 4;
+  processor->PC = voPC;
 }
-
 
 void execute_auipc(Instruction instruction, Processor *processor) {
   /* YOUR CODE HERE */
@@ -280,7 +283,10 @@ void execute_auipc(Instruction instruction, Processor *processor) {
 
 
 void execute_lui(Instruction instruction, Processor *processor) {
-  /* YOUR CODE HERE */
+  /* no critiques mi variable :/*/
+  int panque
+  panque = bitSigner(instruction.utype.panque, 32) << 12;
+  processor->R[instruction.utype.rd] = panque;
 }
 
 
